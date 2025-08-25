@@ -1,8 +1,8 @@
 #include <stdio.h>
 
 #define TAM 10      // Tamanho do tabuleiro (10x10)
-#define NAVIO 3     // Valor que representa a parte de um navio
-#define TAMANHO 3   // Tamanho fixo dos navios (3 posições)
+#define NAVIO 3     // Valor que representa uma parte do navio
+#define TAMANHO 3   // Tamanho fixo dos navios (3 casas)
 
 // Função para inicializar o tabuleiro com 0 (água)
 void inicializarTabuleiro(int tabuleiro[TAM][TAM]) {
@@ -13,33 +13,57 @@ void inicializarTabuleiro(int tabuleiro[TAM][TAM]) {
     }
 }
 
-// Função para verificar se um navio cabe dentro do tabuleiro
+// Função para validar se o navio pode ser colocado sem sair do tabuleiro ou sobrepor outro
 int validarPosicao(int linha, int coluna, int orientacao, int tabuleiro[TAM][TAM]) {
-    // orientacao = 0 → horizontal, 1 → vertical
+    // orientacao: 0=horizontal, 1=vertical, 2=diagonal ↘, 3=diagonal ↙
 
-    if (orientacao == 0) { // horizontal
+    if (orientacao == 0) { // Horizontal →
         if (coluna + TAMANHO > TAM) return 0; // não cabe
         for (int j = 0; j < TAMANHO; j++) {
-            if (tabuleiro[linha][coluna + j] != 0) return 0; // já ocupado
+            if (tabuleiro[linha][coluna + j] != 0) return 0; // sobreposição
         }
-    } else { // vertical
-        if (linha + TAMANHO > TAM) return 0; // não cabe
+    } 
+    else if (orientacao == 1) { // Vertical ↓
+        if (linha + TAMANHO > TAM) return 0;
         for (int i = 0; i < TAMANHO; i++) {
-            if (tabuleiro[linha + i][coluna] != 0) return 0; // já ocupado
+            if (tabuleiro[linha + i][coluna] != 0) return 0;
+        }
+    } 
+    else if (orientacao == 2) { // Diagonal ↘ (linha+ e coluna+)
+        if (linha + TAMANHO > TAM || coluna + TAMANHO > TAM) return 0;
+        for (int k = 0; k < TAMANHO; k++) {
+            if (tabuleiro[linha + k][coluna + k] != 0) return 0;
+        }
+    } 
+    else if (orientacao == 3) { // Diagonal ↙ (linha+ e coluna-)
+        if (linha + TAMANHO > TAM || coluna - (TAMANHO - 1) < 0) return 0;
+        for (int k = 0; k < TAMANHO; k++) {
+            if (tabuleiro[linha + k][coluna - k] != 0) return 0;
         }
     }
     return 1; // posição válida
 }
 
-// Função para posicionar o navio
+// Função para posicionar o navio no tabuleiro
 void posicionarNavio(int linha, int coluna, int orientacao, int tabuleiro[TAM][TAM]) {
-    if (orientacao == 0) { // horizontal
+    if (orientacao == 0) { // Horizontal
         for (int j = 0; j < TAMANHO; j++) {
             tabuleiro[linha][coluna + j] = NAVIO;
         }
-    } else { // vertical
+    } 
+    else if (orientacao == 1) { // Vertical
         for (int i = 0; i < TAMANHO; i++) {
             tabuleiro[linha + i][coluna] = NAVIO;
+        }
+    } 
+    else if (orientacao == 2) { // Diagonal ↘
+        for (int k = 0; k < TAMANHO; k++) {
+            tabuleiro[linha + k][coluna + k] = NAVIO;
+        }
+    } 
+    else if (orientacao == 3) { // Diagonal ↙
+        for (int k = 0; k < TAMANHO; k++) {
+            tabuleiro[linha + k][coluna - k] = NAVIO;
         }
     }
 }
@@ -61,22 +85,25 @@ int main() {
     // Inicializa o tabuleiro com água
     inicializarTabuleiro(tabuleiro);
 
-    // Definindo manualmente as coordenadas iniciais dos navios
-    int linha1 = 2, coluna1 = 1, orientacao1 = 0; // navio 1 horizontal
-    int linha2 = 5, coluna2 = 4, orientacao2 = 1; // navio 2 vertical
+    // Definição manual das posições dos 4 navios
+    int navios[4][3] = {
+        {2, 1, 0}, // linha=2, coluna=1, horizontal →
+        {5, 4, 1}, // linha=5, coluna=4, vertical ↓
+        {0, 0, 2}, // linha=0, coluna=0, diagonal ↘
+        {0, 9, 3}  // linha=0, coluna=9, diagonal ↙
+    };
 
-    // Valida e posiciona o primeiro navio
-    if (validarPosicao(linha1, coluna1, orientacao1, tabuleiro)) {
-        posicionarNavio(linha1, coluna1, orientacao1, tabuleiro);
-    } else {
-        printf("Erro: nao foi possivel posicionar o navio 1!\n");
-    }
+    // Posiciona os navios no tabuleiro
+    for (int n = 0; n < 4; n++) {
+        int linha = navios[n][0];
+        int coluna = navios[n][1];
+        int orientacao = navios[n][2];
 
-    // Valida e posiciona o segundo navio
-    if (validarPosicao(linha2, coluna2, orientacao2, tabuleiro)) {
-        posicionarNavio(linha2, coluna2, orientacao2, tabuleiro);
-    } else {
-        printf("Erro: nao foi possivel posicionar o navio 2!\n");
+        if (validarPosicao(linha, coluna, orientacao, tabuleiro)) {
+            posicionarNavio(linha, coluna, orientacao, tabuleiro);
+        } else {
+            printf("Erro: nao foi possivel posicionar o navio %d!\n", n + 1);
+        }
     }
 
     // Exibe o tabuleiro final
